@@ -198,45 +198,27 @@ export default function ManajemenAnggota() {
   };
 
   // =========================================================================
-  // 🔥 UPGRADE 1: DOWNLOAD TEMPLATE 3 SHEET (MAHASISWA, DOSEN, STAFF)
+  // 🔥 UPGRADE 1: DOWNLOAD TEMPLATE (HANYA HEADER KOSONG, TANPA DUMMY DATA)
   // =========================================================================
   const handleDownloadTemplate = () => {
     const wb = XLSX.utils.book_new();
 
-    // 1. Sheet Mahasiswa
-    const dataStudent = [
-      {
-        ID_ANGGOTA: "0520270001",
-        NAMA: "Budi Mahasiswa",
-        JURUSAN: "IS",
-        BATCH: String(currentYear),
-      },
-      {
-        ID_ANGGOTA: "0520270002",
-        NAMA: "Siti Mahasiswi",
-        JURUSAN: "IT",
-        BATCH: String(currentYear),
-      },
-    ];
-    const wsStudent = XLSX.utils.json_to_sheet(dataStudent);
+    // 1. Sheet Mahasiswa (Hanya Header)
+    const wsStudent = XLSX.utils.aoa_to_sheet([
+      ["ID_ANGGOTA", "NAMA", "JURUSAN", "BATCH"],
+    ]);
     wsStudent["!cols"] = [{ wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 10 }];
     XLSX.utils.book_append_sheet(wb, wsStudent, "Mahasiswa");
 
-    // 2. Sheet Dosen
-    const dataLecturer = [
-      { ID_ANGGOTA: "1020304050", NAMA: "Prof. Dr. Andi", JURUSAN: "IS" },
-      { ID_ANGGOTA: "5040302010", NAMA: "Dr. Rani", JURUSAN: "EL" },
-    ];
-    const wsLecturer = XLSX.utils.json_to_sheet(dataLecturer);
+    // 2. Sheet Dosen (Hanya Header)
+    const wsLecturer = XLSX.utils.aoa_to_sheet([
+      ["ID_ANGGOTA", "NAMA", "JURUSAN"],
+    ]);
     wsLecturer["!cols"] = [{ wch: 15 }, { wch: 30 }, { wch: 15 }];
     XLSX.utils.book_append_sheet(wb, wsLecturer, "Dosen");
 
-    // 3. Sheet Staff
-    const dataStaff = [
-      { ID_ANGGOTA: "9988776655", NAMA: "Pak Joko (Pustakawan)" },
-      { ID_ANGGOTA: "5566778899", NAMA: "Bu Yani (Admin)" },
-    ];
-    const wsStaff = XLSX.utils.json_to_sheet(dataStaff);
+    // 3. Sheet Staff (Hanya Header)
+    const wsStaff = XLSX.utils.aoa_to_sheet([["ID_ANGGOTA", "NAMA"]]);
     wsStaff["!cols"] = [{ wch: 15 }, { wch: 30 }];
     XLSX.utils.book_append_sheet(wb, wsStaff, "Staff");
 
@@ -244,7 +226,7 @@ export default function ManajemenAnggota() {
   };
 
   // =========================================================================
-  // 🔥 UPGRADE 2: BACA NAMA SHEET DAN OTOMATIS TENTUKAN ROLE
+  // 🔥 UPGRADE 2: BACA PURE DARI EXCEL (TANPA DATA STATIC TAMBAHAN)
   // =========================================================================
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -261,9 +243,9 @@ export default function ManajemenAnggota() {
 
         wb.SheetNames.forEach((sheetName) => {
           const ws = wb.Sheets[sheetName];
-          const rawData = XLSX.utils.sheet_to_json(ws) as any[];
+          const rawData = XLSX.utils.sheet_to_json(ws, { raw: false }) as any[];
 
-          // Logika Penentuan Role Cerdas Berdasarkan Nama Tab Sheet
+          // Tetap gunakan tab sheet untuk membedakan Role secara otomatis
           let roleToAssign = "student";
           if (sheetName.toLowerCase().includes("dosen")) {
             roleToAssign = "lecturer";
@@ -272,11 +254,13 @@ export default function ManajemenAnggota() {
           }
 
           rawData.forEach((row) => {
-            if (row.ID_ANGGOTA) {
+            // 🔥 HANYA ambil data jika ID_ANGGOTA dan NAMA benar-benar terisi di Excel
+            if (row.ID_ANGGOTA && row.NAMA) {
+              const cleanId = String(row.ID_ANGGOTA).replace(/^'/, "").trim();
+
               payloadExcel.push({
-                // Konversi aman ke string & trim spasi berlebih
-                id_anggota: String(row.ID_ANGGOTA).trim(),
-                nama: String(row.NAMA || "Tanpa Nama").trim(),
+                id_anggota: cleanId,
+                nama: String(row.NAMA).trim(), // 100% PURE dari ketikanmu di Excel
                 role: roleToAssign,
                 jurusan: row.JURUSAN ? String(row.JURUSAN).trim() : null,
                 batch: row.BATCH ? String(row.BATCH).trim() : null,
@@ -288,7 +272,7 @@ export default function ManajemenAnggota() {
         if (payloadExcel.length === 0) {
           setNotif({
             type: "error",
-            msg: "Data kosong. Pastikan kolom ID_ANGGOTA terisi di Excel!",
+            msg: "Data kosong. Pastikan kolom ID_ANGGOTA dan NAMA terisi di Excel!",
           });
           setLoading(false);
           return;

@@ -6,15 +6,25 @@ export const generateCustomExcel = (data: any[], fileName: string) => {
     return;
   }
 
+  // 🔥 PERBAIKAN: Beri tanda petik tunggal di depan ID agar 0 tidak hilang di Excel
+  const safeData = data.map((row) => {
+    const newRow = { ...row };
+    if (newRow["ID Anggota"]) {
+      // Menambahkan ' di depan teks. Excel akan membaca ini sebagai Text Format
+      newRow["ID Anggota"] = `'${newRow["ID Anggota"]}`;
+    }
+    return newRow;
+  });
+
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(data);
+  const ws = XLSX.utils.json_to_sheet(safeData); // Gunakan data yang sudah aman
 
   // Deteksi kolom apa saja yang ada di data saat ini
-  const keys = Object.keys(data[0]);
+  const keys = Object.keys(safeData[0]);
 
   // Atur lebar kolom dinamis sesuai nama kolomnya
   const colWidths = keys.map((key) => {
-    if (key === "ID Anggota") return { wch: 15 };
+    if (key === "ID Anggota") return { wch: 18 }; // Diperlebar sedikit untuk ID
     if (key === "Nama Lengkap") return { wch: 35 };
     if (key === "Role") return { wch: 15 };
     if (key === "Jurusan") return { wch: 25 };

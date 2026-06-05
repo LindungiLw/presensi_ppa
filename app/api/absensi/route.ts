@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma"; // Pastikan path ini sesuai dengan struktur foldermu
 
 export async function POST(request: Request) {
   try {
-    const { nim } = await request.json();
+    const body = await request.json();
 
-    if (!nim || typeof nim !== "string") {
+    // 🔥 PERBAIKAN 1: Ambil data (bisa dari key 'nim' atau 'id')
+    const rawId = body.nim || body.id;
+
+    if (!rawId) {
       return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 });
     }
-    const cleanId = nim.trim();
+
+    // 🔥 PERBAIKAN 2: Paksa apapun inputannya menjadi String utuh
+    // Ini memastikan angka "0" di depan (seperti 0520230007) tidak akan pernah hilang
+    const cleanId = String(rawId).trim();
 
     // 1. Setup Waktu WIB
     const wibTime = new Date(
@@ -16,12 +22,12 @@ export async function POST(request: Request) {
     );
     const hari = wibTime.getDay();
 
-    // 🔥 AMBIL JAM DAN MENIT MENGGUNAKAN FUNGSI MATEMATIKA BAKU (KEBAL SERVER)
+    // AMBIL JAM DAN MENIT MENGGUNAKAN FUNGSI MATEMATIKA BAKU (KEBAL SERVER)
     const hh = String(wibTime.getHours()).padStart(2, "0");
     const mmWaktu = String(wibTime.getMinutes()).padStart(2, "0");
     const currentHHMM = `${hh}:${mmWaktu}`;
 
-    // 🔥 2. Buat format tanggal YYYY-MM-DD yang seragam untuk dimasukkan ke database
+    // 2. Buat format tanggal YYYY-MM-DD yang seragam untuk dimasukkan ke database
     const yyyy = wibTime.getFullYear();
     const mm = String(wibTime.getMonth() + 1).padStart(2, "0");
     const dd = String(wibTime.getDate()).padStart(2, "0");
@@ -63,13 +69,13 @@ export async function POST(request: Request) {
     if (!anggota) {
       return NextResponse.json(
         {
-          error: "ID belum terdaftar di sistem. Lapor ke pustakawan dulu ya!",
+          error: `ID (${cleanId}) belum terdaftar di sistem. Lapor ke pustakawan dulu ya!`,
         },
         { status: 404 },
       );
     }
 
-    // 🔥 3. Pengecekan awal yang sangat ringan dan cepat karena menggunakan string tanggal
+    // 3. Pengecekan awal yang sangat ringan dan cepat karena menggunakan string tanggal
     const sudahAbsenDiSesiIni = await prisma.kehadiran.findFirst({
       where: {
         id_anggota: cleanId,
@@ -86,7 +92,7 @@ export async function POST(request: Request) {
     }
 
     // =========================================================
-    // 🔥 4. BLOK TRANSACTION ANTI RACE CONDITION (ANTI SPAM DOUBLE SCAN)
+    // 4. BLOK TRANSACTION ANTI RACE CONDITION (ANTI SPAM DOUBLE SCAN)
     // =========================================================
     let updatedAnggota;
     try {
