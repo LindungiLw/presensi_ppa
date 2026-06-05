@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Anggota {
+  id_anggota  String      @id @db.VarChar(50) // Berlaku universal untuk NIM, NIDN, atau ID Staff
+  nama        String      @db.VarChar(255)
+  role        String      @db.VarChar(20)     // Isinya nanti: "student", "lecturer", atau "staff"
+  jurusan     String?     @db.VarChar(100)    // Opsional: Untuk student & lecturer
+  batch       String?     @db.VarChar(10)     // Opsional: Hanya untuk student (misal: "2023")
+  
+  negara     String?     @default("ID") // ID, KR, JP, AF, dll
+  pulau      String?     // Jawa, Sumatera, Kalimantan, dll (Khusus ID)
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  total_kunjungan Int         @default(0)
+
+  // Relasi ke log kehadiran
+  kehadiran   Kehadiran[]
+
+  @@map("anggota") // Nama tabel di MySQL Hostinger nanti jadi "anggota"
+}
+
+model Kehadiran {
+  id          Int      @id @default(autoincrement())
+  id_anggota  String   @db.VarChar(50)
+  waktu       DateTime @default(now())
+  sesi        String   @db.VarChar(20) // "Pagi", "Siang", "Malam", "Luar Jam"
+
+  tanggal    String
+  // Tali pengikat relasi ke tabel Anggota
+  anggota     Anggota  @relation(fields: [id_anggota], references: [id_anggota], onDelete: Cascade)
+
+  @@unique([id_anggota, sesi, tanggal])
+  @@map("kehadiran")
+}
+
+model HariLibur {
+  id         Int      @id @default(autoincrement())
+  tanggal    String   @unique // Format: YYYY-MM-DD
+  keterangan String
+}
+
+model PengaturanSesi {
+  id          Int    @id @default(autoincrement())
+  nama_sesi   String @unique // Pagi, Siang, Malam
+  jam_mulai   String // Format "HH:mm" misal "08:00"
+  jam_selesai String // Format "HH:mm" misal "11:59"
+}
