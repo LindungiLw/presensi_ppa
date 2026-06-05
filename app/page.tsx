@@ -76,22 +76,14 @@ export default function HalamanAbsensi() {
       });
   }, []);
 
-  // 🔥 TAMBAHAN BARU: USE-EFFECT AUTO REFOCUS
-  // Memastikan kursor selalu berada di dalam kotak input
   useEffect(() => {
     const handleGlobalClick = () => {
-      // Pastikan kursor selalu kembali ke kotak input walau layar di-klik di mana saja
-      // Pengecekan getSelection() agar user tetap bisa memblok copy-paste teks kalau butuh
       if (window.getSelection()?.toString() === "") {
         inputRef.current?.focus();
       }
     };
-
     window.addEventListener("click", handleGlobalClick);
-
-    // Paksa aktif saat pertama buka
     inputRef.current?.focus();
-
     return () => window.removeEventListener("click", handleGlobalClick);
   }, []);
 
@@ -109,36 +101,29 @@ export default function HalamanAbsensi() {
 
   const handleProsesAbsen = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 1. Simpan dulu teks input ke dalam memori (variabel)
     const scannedID = inputID.trim();
-
-    // 2. Gunakan variabel scannedID di pengecekan ini
     if (loading || !scannedID || isLibur) return;
 
     setLoading(true);
     setNotif(null);
     setShowSuccessAnim(false);
-
-    // Bersihkan layar dari log sebelumnya
     setLogTerakhir(null);
-
-    // 🔥 3. KOSONGKAN LAYAR INPUT SEKARANG JUGA! (Sebelum menghubungi server)
     setInputID("");
 
     try {
       const response = await fetch("/api/absensi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // 4. Kirim scannedID yang sudah disimpan ke server
         body: JSON.stringify({ nim: scannedID }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // 🔥 DEFAULT ENGLISH GREETING
         let sapaan = `Hello, ${data.nama}! 👋 Have a great day!`;
 
+        // CUSTOM GREETING BERDASARKAN NEGARA/REGION
         if (data.negara === "KR")
           sapaan = `안녕하세요, ${data.nama}! 👋 Have a great day!`;
         else if (data.negara === "JP")
@@ -147,18 +132,16 @@ export default function HalamanAbsensi() {
           sapaan = `سلام, ${data.nama}! 👋 Have a great day!`;
         else if (data.negara === "ID") {
           if (data.pulau === "Sumatera")
-            sapaan = `Halo, ${data.nama}! 👋 Horas/Salam dari Sumatera!`;
+            sapaan = `Horas! Hello, ${data.nama}! 👋 Have a great day!`;
           else if (data.pulau === "Jawa")
-            sapaan = `Halo, ${data.nama}! 👋 Piye kabare? Semangat belajarnya!`;
-          else if (data.pulau === "Kalimantan")
-            sapaan = `Halo, ${data.nama}! 👋 Jauh dari Kalimantan, harus sukses!`;
+            sapaan = `Sugeng rawuh! Hello, ${data.nama}! 👋 Have a great day!`;
           else if (data.pulau === "Sulawesi")
-            sapaan = `Halo, ${data.nama}! 👋 Aga kareba? Semangat di perpus!`;
+            sapaan = `Aga kareba? Hello, ${data.nama}! 👋 Have a great day!`;
           else if (data.pulau === "Papua")
-            sapaan = `Halo, ${data.nama}! 👋 Pace/Mace semangat terus!`;
+            sapaan = `Halo Pace/Mace ${data.nama}! 👋 Have a great day!`;
           else if (data.pulau === "Nias")
-            sapaan = `Halo, ${data.nama}! 👋 Ya'ahowu! Semangat di perpus!`;
-          else sapaan = `Halo, ${data.nama}! 👋 Selamat beraktivitas!`;
+            sapaan = `Ya'ahowu! Hello, ${data.nama}! 👋 Have a great day!`;
+          else sapaan = `Hello, ${data.nama}! 👋 Welcome to the library!`;
         }
 
         showNotification("success", sapaan);
@@ -214,7 +197,6 @@ export default function HalamanAbsensi() {
     <main
       className={`${plusJakartaSans.className} min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center justify-center p-4 relative overflow-hidden select-none`}
     >
-      {/* ─── DOT GRID BACKGROUND KOSMOS ─── */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
@@ -236,7 +218,6 @@ export default function HalamanAbsensi() {
 
       <BookBackground />
 
-      {/* ─── FAST CONFETTI ANIMATION ─── */}
       {showSuccessAnim && (
         <div className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none overflow-hidden">
           {CONFETTI_PARTICLES.map((p, i) => (
@@ -261,7 +242,6 @@ export default function HalamanAbsensi() {
         </div>
       )}
 
-      {/* ─── VALUES CYCLING TEXT ─── */}
       <div className="fixed bottom-5 inset-x-0 z-20 flex justify-center pointer-events-none select-none">
         <div className="relative h-4 w-52">
           {VALUES_TEXT.map((word, i) => (
@@ -280,9 +260,6 @@ export default function HalamanAbsensi() {
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* MENGGUNAKAN KOMPONEN KARTU 3D YANG BARU DIBUAT            */}
-      {/* ========================================================= */}
       <Card3D>
         <div className="text-center space-y-2 mb-8">
           <div className="flex justify-center mb-5">
@@ -333,7 +310,6 @@ export default function HalamanAbsensi() {
           </button>
         </form>
 
-        {/* NOTIFIKASI */}
         <div className="min-h-[70px] flex items-center justify-center w-full max-w-md mx-auto my-4 relative z-20">
           {notif && (
             <div
@@ -344,7 +320,6 @@ export default function HalamanAbsensi() {
           )}
         </div>
 
-        {/* AREA RANKING DAN PROFIL NAMA */}
         <div className="w-full max-w-md mx-auto relative z-20">
           {logTerakhir ? (
             <div className="flex flex-col animate-in fade-in slide-in-from-bottom-3 duration-500">
@@ -396,7 +371,6 @@ export default function HalamanAbsensi() {
           )}
         </div>
       </Card3D>
-      {/* ========================================================= */}
     </main>
   );
 }

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const rawId = body.nim || body.id;
 
     if (!rawId) {
-      return NextResponse.json({ error: "ID wajib diisi" }, { status: 400 });
+      return NextResponse.json({ error: "ID is required." }, { status: 400 });
     }
 
     // 🔥 PERBAIKAN 2: Paksa apapun inputannya menjadi String utuh
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Perpustakaan tutup / sedang istirahat. Kembali di jam operasional.",
+            "Library is currently closed or on break. Please return during operating hours.",
         },
         { status: 403 },
       );
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     if (!anggota) {
       return NextResponse.json(
         {
-          error: `ID (${cleanId}) belum terdaftar di sistem. Lapor ke pustakawan dulu ya!`,
+          error: `ID (${cleanId}) is not registered. Please contact the librarian!`,
         },
         { status: 404 },
       );
@@ -86,7 +86,9 @@ export async function POST(request: Request) {
 
     if (sudahAbsenDiSesiIni) {
       return NextResponse.json(
-        { error: `Kamu sudah presensi untuk sesi ${sesiSaatIni} ini!` },
+        {
+          error: `You have already checked in for the ${sesiSaatIni} session!`,
+        },
         { status: 403 },
       );
     }
@@ -116,7 +118,7 @@ export async function POST(request: Request) {
       if (error.code === "P2002") {
         return NextResponse.json(
           {
-            error: `Tahan! Kamu sudah presensi untuk sesi ${sesiSaatIni} ini.`,
+            error: `Hold on! You have already checked in for this session.`,
           },
           { status: 403 },
         );
@@ -159,7 +161,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
-      { error: "Gagal memproses absensi pada server." },
+      { error: "Failed to process attendance on the server." },
       { status: 500 },
     );
   }
