@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Presensi PPA Delada
 
-## Getting Started
+Aplikasi Manajemen Absensi Siswa PPA dengan fitur Superadmin dan Mentor Portal. Dibangun dengan teknologi web modern untuk performa tinggi dan tampilan yang responsif baik di desktop maupun perangkat seluler.
 
-First, run the development server:
+## 🚀 Fitur Utama
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Sistem Autentikasi Ganda (JWT):** Login terpisah yang aman untuk peran `SUPERADMIN` dan `MENTOR`.
+- **Dashboard Superadmin:** Mengelola mentor, mendaftarkan siswa baru, melihat statistik secara realtime, dan mengekspor laporan absensi.
+- **Portal Mentor:** Tampilan khusus (*mobile-friendly*) bagi mentor untuk melakukan checklist absensi siswa (Hadir, Izin, Sakit, Alpa) setiap harinya.
+- **Responsive & Mobile-First:** Dirancang khusus untuk terlihat indah dan mencegah bug geser layar (overscroll) layaknya aplikasi *Native* saat dibuka melalui HP (iPhone/Android).
+- **Keamanan Tinggi:** Seluruh password di-hash secara otomatis menggunakan enkripsi `bcryptjs`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Teknologi yang Digunakan
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js](https://nextjs.org/) (App Router)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Database ORM:** [Prisma](https://www.prisma.io/)
+- **Database Provider:** PostgreSQL (Supabase)
+- **Autentikasi:** JWT (`jose`) & Hash (`bcryptjs`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💻 Panduan Instalasi Lokal
 
-## Learn More
+1. **Clone repository ini:**
+   ```bash
+   git clone https://github.com/LindungiLw/presensi_ppa.git
+   cd presensi_ppa
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Install semua dependensi:**
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Buat file `.env` di dalam folder utama dan isi dengan variabel berikut:**
+   ```env
+   # Ganti dengan URL PostgreSQL Supabase Anda
+   DATABASE_URL="postgres://username:password@aws-0-xyz.pooler.supabase.com:6543/postgres?pgbouncer=true"
+   DIRECT_URL="postgres://username:password@aws-0-xyz.pooler.supabase.com:5432/postgres"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   # JWT dan Akun Default
+   JWT_SECRET="rahasia_acak_ppa_delada_2024_secure"
+   SUPERADMIN_EMAIL="superadmin@ppa.com"
+   SUPERADMIN_PASSWORD="password_rahasia_anda"
+   ```
 
-## Deploy on Vercel
+4. **Lakukan sinkronisasi database (Prisma):**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. **Buat akun Superadmin pertama kali:**
+   ```bash
+   npx prisma db seed
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+6. **Jalankan aplikasi di mode lokal:**
+   ```bash
+   npm run dev
+   ```
+   Aplikasi dapat diakses melalui `http://localhost:3000`.
+
+## 🌍 Panduan Deploy ke Vercel
+
+1. Buat akun atau Login ke [Vercel](https://vercel.com/).
+2. Tambahkan proyek baru (Add New Project) dan impor repository GitHub Anda (`presensi_ppa`).
+3. Pada halaman konfigurasi sebelum deploy, masuk ke menu **Environment Variables**.
+4. Masukkan **semua** variabel yang ada di file `.env` secara manual:
+   - `DATABASE_URL`
+   - `JWT_SECRET`
+   - `SUPERADMIN_EMAIL`
+   - `SUPERADMIN_PASSWORD`
+5. Klik **Deploy**. Vercel akan secara otomatis membangun situs dan merilis aplikasi absensi Anda secara online!
+
+## 👥 Alur Kerja (Workflow)
+- **Hak Akses Superadmin:** Punya kendali penuh untuk membuat/mereset password akun Mentor dan meregistrasikan Siswa baru ke mentor tertentu.
+- **Hak Akses Mentor:** Saat mentor login, mereka hanya akan disuguhkan daftar siswa yang di bawah naungan mereka untuk mempermudah checklist absensi harian.
+
+---
+*Dikembangkan dengan ❤️ untuk PPA Delada IO-126*

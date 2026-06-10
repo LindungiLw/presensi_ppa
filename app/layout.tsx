@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Presensi PPA Delada",
-  description: "Aplikasi manajemen absensi PPA",
+  title: "Presensi | PPA Delada",
+  description: "Management absensiPPA",
 };
 
 export const viewport = {
