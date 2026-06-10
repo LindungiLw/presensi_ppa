@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function POST() {
-  const response = NextResponse.json({
-    success: true,
-    message: "Logout Berhasil",
-  });
-
-  // Hancurkan cookie
-  response.cookies.delete("admin_token");
-
-  return response;
+  const cookieStore = await cookies();
+  cookieStore.delete("auth_token");
+  
+  return NextResponse.json({ success: true });
 }
